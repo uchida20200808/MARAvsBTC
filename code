@@ -1,0 +1,44 @@
+from pandas_datareader import data
+import pandas as pd
+from pylab import mpl, plt
+import numpy as np
+import datetime
+plt.style.use('seaborn')
+mpl.rcParams['font.family'] = 'serif'
+%matplotlib inline
+
+def calc_return(df):
+    rets = np.log(df / df.shift(1))
+    rets.dropna(inplace=True)
+    
+    date = rets.index
+    expo_return = rets['Close'].cumsum().apply(np.exp)
+    return date,expo_return
+
+start = '2020-01-01'
+end = datetime.date.today()
+
+btc_df = data.DataReader('BTC-USD', 'yahoo', start, end)
+mara_df = data.DataReader('MARA', 'yahoo', start, end)
+
+btc_date, btc_return = calc_return(btc_df)
+mara_date, mara_return = calc_return(mara_df)
+
+plt.figure(figsize=(20, 10))
+plt.plot(btc_date, btc_return, label = 'BTC', color='y')
+plt.plot(mara_date, mara_return, label = 'MARA', color='g')
+plt.legend(loc=2, fontsize=18)
+plt.xlabel('year', fontsize=18)
+plt.ylabel('Return', fontsize=18)
+plt.savefig("MARA_return.png")
+
+re_btc_return = (btc_return - 1) / btc_return.max()
+re_mara_return = (mara_return - 1) / mara_return.max()
+
+plt.figure(figsize=(20, 10))
+plt.plot(btc_date, re_btc_return , label = 'BTC', color='y')
+plt.plot(mara_date, re_mara_return, label = 'MARA', color='g')
+plt.legend(loc=2, fontsize=18)
+plt.xlabel('year', fontsize=18)
+plt.ylabel('Return', fontsize=18)
+plt.savefig("reMARA_return.png")
